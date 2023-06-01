@@ -1,11 +1,13 @@
 // Instantiate router - DO NOT MODIFY
 const express = require('express');
+const { Sequelize } = require('../db/models');
 const router = express.Router();
 
 /**
  * BASIC PHASE 1, Step A - Import model
  */
 // Your code here
+const { Tree }  = require("../db/models");
 
 /**
  * INTERMEDIATE BONUS PHASE 1 (OPTIONAL), Step A:
@@ -27,6 +29,28 @@ router.get('/', async (req, res, next) => {
     let trees = [];
 
     // Your code here
+    let unsortedTrees = await Tree.findAll();
+    let treeSorter = [];
+
+    for (let i = 0; i < unsortedTrees.length; i++) {
+        let lastHeight = 0;
+        let tallestJ = 0;
+
+        for (let j = 0; j < unsortedTrees.length; j++) {
+            if (!treeSorter.includes(j)) {
+                if (unsortedTrees[j].heightFt > lastHeight) {
+                    lastHeight = unsortedTrees[j].heightFt;
+                    tallestJ = j;
+                }
+            }
+        }
+
+        treeSorter.push(tallestJ);
+        trees.push(unsortedTrees[tallestJ]);
+    }
+
+    res.status(200);
+    res.setHeader("Content-Type", "application/json");
 
     res.json(trees);
 });
@@ -45,6 +69,8 @@ router.get('/:id', async (req, res, next) => {
 
     try {
         // Your code here
+        let trees = await Tree.findAll();
+        tree = trees[req.params.id - 1];
 
         if (tree) {
             res.json(tree);
