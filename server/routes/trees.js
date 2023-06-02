@@ -218,12 +218,57 @@ router.delete('/:id', async (req, res, next) => {
  *     - Value: Tree not found
  */
 router.put('/:id', async (req, res, next) => {
+    let errorStatus = null;
+    let errorMessage = null;
+    let errorDetails = null;
+
     try {
         // Your code here
+        if (req.body.id) {
+            if (req.body.id != req.params.id) {
+                errorStatus = "error";
+                errorMessage = "Could not update tree";
+                errorDetails = `${req.params.id} does not match ${req.body.id}`;
+                throw new Error(errorDetails);
+            }
+        }
+
+        let myTree = await Tree.findByPk(req.params.id);
+
+        if (!myTree) {
+            errorStatus = "not-found";
+            errorMessage = `Could not update tree ${req.params.id}`;
+            errorDetails = "Tree not found";
+            throw new Error(errorDetails);
+        }
+
+        if (req.body.name) {
+            myTree.tree = req.body.name;
+        }
+        if (req.body.location) {
+            myTree.location = req.body.location;
+        }
+        if (req.body.height) {
+            myTree.heightFt = req.body.height;
+        }
+        if (req.body.size) {
+            myTree.groundCircumferenceFt = req.body.size;
+        }
+
+        await myTree.save();
+
+        res.status(200);
+        res.setHeader("Content-Type", "application/json");
+        res.json({
+            status: "success",
+            message: "Successfully updated tree",
+            data: myTree
+        });
+
     } catch(err) {
         next({
-            status: "error",
-            message: 'Could not update new tree',
+            status: errorStatus,
+            message: errorMessage,
             details: err.errors ? err.errors.map(item => item.message).join(', ') : err.message
         });
     }
