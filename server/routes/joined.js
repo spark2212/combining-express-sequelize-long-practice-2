@@ -21,10 +21,39 @@ const { Op } = require("sequelize");
  */
 router.get('/trees-insects', async (req, res, next) => {
     let trees = [];
+    console.log(1);
 
-    trees = await Tree.findAll({
+    let allTrees = await Tree.findAll({
         attributes: ['id', 'tree', 'location', 'heightFt'],
+        include: {Insect}
     });
+    console.log(2);
+
+    console.log(`allTrees.length == ${allTrees.length}`);
+    allTrees.forEach(tree => {
+        console.log(3);
+        if (tree.insect.length > 0) {
+            console.log(4);
+            let longInsects = [...tree.insect].sort((a, b) => a.name > b.name ? 1 : -1);
+            console.log(5);
+
+            let insects = longInsects.map(insect => {return {id: insect.id, name: insect.name}});
+
+            console.log(6);
+            trees.push({
+                id: tree.id,
+                tree: tree.tree,
+                location: tree.location,
+                heightFt: tree.heightFt,
+                insects
+            });
+
+            console.log(7);
+        }
+    });
+
+    trees.sort((a, b) => b.heightFt - a.heightFt);
+    console.log(8);
 
     res.json(trees);
 });
